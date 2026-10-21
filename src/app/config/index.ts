@@ -13,4 +13,8 @@ export default {
   jwt_access_expiration: process.env.JWT_ACCESS_EXPIRATION!,
   jwt_refresh_secret: process.env.JWT_REFRESH_SECRET!,
   jwt_refresh_expiration: process.env.JWT_REFRESH_EXPIRATION!,
+
+  tester_admin_name:process.env.TESTER_ADMIN_NAME!,
+  tester_admin_email:process.env.TESTER_ADMIN_EMAIL!,
+  tester_admin_password:process.env.TESTER_ADMIN_PASSWORD!,
 };
