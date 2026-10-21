@@ -6,6 +6,8 @@ model User {
   phone    String?
   userRole UserRole @default(STUDENT)
 
+  useStatus UserStatus @default(ACTIVE)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
