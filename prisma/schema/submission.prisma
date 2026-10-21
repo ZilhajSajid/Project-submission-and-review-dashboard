@@ -1,0 +1,24 @@
+model Submission {
+  id String @id @default(uuid()) @db.Uuid
+
+  projectName     String
+  projectLiveLink String
+  githubLink      String
+  description     String
+
+  status SubmissionStatus @default(PENDING)
+
+  reviewedById String? @db.Uuid
+  reviewedBy   User?   @relation("SubmissionReviewer", fields: [reviewedById], references: [id])
+
+  reviewedAt   DateTime?
+  rejectReason String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  studentId String @unique @db.Uuid
+  student   User   @relation("StudentSubmission", fields: [studentId], references: [id])
+
+  @@map("submissions")
+}
