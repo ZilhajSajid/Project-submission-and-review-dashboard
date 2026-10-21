@@ -3,7 +3,7 @@ import { prisma } from "../../lib/prisma";
 import { LoginPayload } from "./auth.type";
 import { AppError } from "../../utils/AppError";
 import httpStatus from "http-status";
-import jwt, { SignOptions } from "jsonwebtoken";
+import { SignOptions } from "jsonwebtoken";
 import config from "../../config";
 import { jwtUtils } from "../../utils/jwt";
 
@@ -22,7 +22,7 @@ const loginUser = async (payload: LoginPayload) => {
   }
 
   const jwtPayload = {
-    id: isUserExist.id,
+    userId: isUserExist.id,
     name: isUserExist.name,
     email: isUserExist.email,
     role: isUserExist.userRole,

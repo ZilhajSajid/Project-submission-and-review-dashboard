@@ -1,13 +1,12 @@
 import type { NextFunction, Request, Response } from "express";
-
+import type { JwtPayload } from "jsonwebtoken";
+import httpStatus from "http-status";
+import { UserRole } from "../../../generated/prisma/enums";
 import { catchAsync } from "../utils/catchAsync";
 import { AppError } from "../utils/AppError";
-import httpStatus from "http-status";
 import { jwtUtils } from "../utils/jwt";
 import config from "../config";
 import { prisma } from "../lib/prisma";
-import type { JwtPayload } from "jsonwebtoken";
-import { UserRole } from "../../../generated/prisma/enums";
 
 export interface RequestUser {
   email: string;
@@ -26,11 +25,11 @@ declare global {
 
 export const auth = (...requiredRoles: UserRole[]) => {
   return catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const token = req.cookies.accessToken
+    const token = req.cookies?.accessToken
       ? req.cookies.accessToken
       : req.headers.authorization?.startsWith("Bearer ")
-        ? req.headers.authorization?.split(" ")[1]
-        : req.headers.authorization;
+        ? req.headers.authorization.slice(7)
+        : undefined;
 
     if (!token) {
       throw new AppError(
@@ -38,29 +37,27 @@ export const auth = (...requiredRoles: UserRole[]) => {
         "You are not logged in. Please log in to access this resource.",
       );
     }
+
     const verifiedToken = jwtUtils.verifyToken(token, config.jwt_access_secret);
 
     if (!verifiedToken.success) {
       throw new AppError(httpStatus.UNAUTHORIZED, verifiedToken.error);
     }
 
-    const { email, name, userId, role } = verifiedToken.data as JwtPayload;
+    const { userId } = verifiedToken.data as JwtPayload & {
+      userId: string;
+    };
 
-    if (requiredRoles.length && !requiredRoles.includes(role)) {
-      throw new AppError(
-        httpStatus.FORBIDDEN,
-        "Forbidden. You don't have permission to access this resource.",
-      );
+    if (!userId) {
+      throw new AppError(httpStatus.UNAUTHORIZED, "Invalid access token.");
     }
+
+    // 1. Find the user
     const user = await prisma.user.findUnique({
-      where: {
-        id: userId,
-        email,
-        name,
-        role,
-      },
+      where: { id: userId },
     });
 
+    // 2. Ensure the user exists
     if (!user) {
       throw new AppError(
         httpStatus.UNAUTHORIZED,
@@ -68,17 +65,28 @@ export const auth = (...requiredRoles: UserRole[]) => {
       );
     }
 
+    // 3. Check account status
     if (user.useStatus === "BLOCKED") {
       throw new AppError(
         httpStatus.FORBIDDEN,
         "Your account has been blocked. Please contact support.",
       );
     }
+
+    // 4. Check the current database role
+    if (requiredRoles.length > 0 && !requiredRoles.includes(user.userRole)) {
+      throw new AppError(
+        httpStatus.FORBIDDEN,
+        "Forbidden. You don't have permission to access this resource.",
+      );
+    }
+
+    // 5. Attach authenticated user data
     req.user = {
-      email,
-      name,
-      userId,
-      role,
+      email: user.email,
+      name: user.name,
+      userId: user.id,
+      role: user.userRole,
     };
 
     next();
