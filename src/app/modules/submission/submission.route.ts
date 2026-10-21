@@ -11,4 +11,10 @@ router.post(
   SubmissionController.projectSubmission,
 );
 
+router.get(
+  "/my-submission",
+  auth(UserRole.STUDENT),
+  SubmissionController.mySubmission,
+);
+
 export const SubmissionRoutes = router;

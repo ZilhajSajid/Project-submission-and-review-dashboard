@@ -23,4 +23,21 @@ const projectSubmission = async (
   return submission;
 };
 
-export const SubmissionService = { projectSubmission };
+const mySubmission = async (studentId:string) => {
+    const submission = await prisma.submission.findUnique({
+    where: {
+      studentId,
+    },
+  });
+
+  if (!submission) {
+    throw new AppError(
+      httpStatus.NOT_FOUND,
+      "You have not submitted any project yet.",
+    );
+  }
+
+  return submission;
+};
+
+export const SubmissionService = { projectSubmission, mySubmission };

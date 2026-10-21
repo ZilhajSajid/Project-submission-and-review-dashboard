@@ -17,5 +17,17 @@ const projectSubmission = catchAsync(async (req: Request, res: Response) => {
     data: result,
   });
 });
+const mySubmission = catchAsync(async (req: Request, res: Response) => {
+  const studentId = req.user?.userId!;
 
-export const SubmissionController = { projectSubmission };
+  const result = await SubmissionService.mySubmission(studentId);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "My Submissions retrieved successfully",
+    data: result,
+  });
+});
+
+export const SubmissionController = { projectSubmission, mySubmission };
