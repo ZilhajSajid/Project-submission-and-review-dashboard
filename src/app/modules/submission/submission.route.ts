@@ -23,4 +23,10 @@ router.get(
   SubmissionController.getAllSubmission,
 );
 
+router.patch(
+  "/review-submission/:submissionId",
+  auth(UserRole.ADMIN),
+  SubmissionController.reviewSubmission,
+);
+
 export const SubmissionRoutes = router;

@@ -3,6 +3,8 @@ import { catchAsync } from "../../utils/catchAsync";
 import { SubmissionService } from "./submission.service";
 import { sendResponse } from "../../utils/sendResponse";
 import httpStatus from "http-status";
+import { reviewSubmissionSchema } from "./submission.validation";
+import { AppError } from "../../utils/AppError";
 
 const projectSubmission = catchAsync(async (req: Request, res: Response) => {
   const payload = req.body;
@@ -40,9 +42,30 @@ const getAllSubmission = catchAsync(async (req: Request, res: Response) => {
     data: result,
   });
 });
+const reviewSubmission = catchAsync(async (req: Request, res: Response) => {
+  const adminId = req.user?.userId!;
+  const payload = reviewSubmissionSchema.parse(req.body);
+  const submissionId = req.params.submissionId;
+  if (typeof submissionId !== "string" || !submissionId.trim()) {
+    throw new AppError(httpStatus.BAD_REQUEST, "Invalid submission ID.");
+  }
+  const result = await SubmissionService.reviewSubmission(
+    submissionId,
+    adminId,
+    payload,
+  );
+
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: `Submission ${payload.status.toLowerCase()} successfully.`,
+    data: result,
+  });
+});
 
 export const SubmissionController = {
   projectSubmission,
   mySubmission,
   getAllSubmission,
+  reviewSubmission,
 };

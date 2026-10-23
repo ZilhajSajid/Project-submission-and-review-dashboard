@@ -3,7 +3,10 @@ import { SubmissionWhereInput } from "../../../../generated/prisma/models";
 import { IQuery } from "../../interfaces";
 import { prisma } from "../../lib/prisma";
 import { AppError } from "../../utils/AppError";
-import { ProjectSubmissionPayload } from "./submission.type";
+import {
+  ProjectSubmissionPayload,
+  ReviewSubmissionPayload,
+} from "./submission.type";
 import httpStatus from "http-status";
 
 const projectSubmission = async (
@@ -107,8 +110,62 @@ const getAllSubmission = async (query: IQuery) => {
   };
 };
 
+const reviewSubmission = async (
+  submissionId: string,
+  adminId: string,
+  payload: ReviewSubmissionPayload,
+) => {
+  const submission = await prisma.submission.findUnique({
+    where: {
+      id: submissionId,
+    },
+  });
+
+  if (!submission) {
+    throw new AppError(httpStatus.NOT_FOUND, "Submission not found.");
+  }
+
+  if (submission.status !== "PENDING") {
+    throw new AppError(
+      httpStatus.CONFLICT,
+      "This submission has already been reviewed.",
+    );
+  }
+
+  const updatedSubmission = await prisma.submission.update({
+    where: {
+      id: submissionId,
+    },
+    data: {
+      status: payload.status,
+      reviewedById: adminId,
+      reviewedAt: new Date(),
+      rejectReason: payload.status === "REJECTED" ? payload.rejectReason : null,
+    },
+    include: {
+      student: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+        },
+      },
+      reviewedBy: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+        },
+      },
+    },
+  });
+
+  return updatedSubmission;
+};
+
 export const SubmissionService = {
   projectSubmission,
   mySubmission,
   getAllSubmission,
+  reviewSubmission,
 };
