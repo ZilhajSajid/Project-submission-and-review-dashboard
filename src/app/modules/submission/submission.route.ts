@@ -17,4 +17,10 @@ router.get(
   SubmissionController.mySubmission,
 );
 
+router.get(
+  "/all-submissions",
+  auth(UserRole.ADMIN),
+  SubmissionController.getAllSubmission,
+);
+
 export const SubmissionRoutes = router;

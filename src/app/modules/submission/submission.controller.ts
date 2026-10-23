@@ -29,5 +29,20 @@ const mySubmission = catchAsync(async (req: Request, res: Response) => {
     data: result,
   });
 });
+const getAllSubmission = catchAsync(async (req: Request, res: Response) => {
+  const query = req.query;
+  const result = await SubmissionService.getAllSubmission(query);
 
-export const SubmissionController = { projectSubmission, mySubmission };
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "All Submissions retrieved successfully",
+    data: result,
+  });
+});
+
+export const SubmissionController = {
+  projectSubmission,
+  mySubmission,
+  getAllSubmission,
+};
