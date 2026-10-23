@@ -163,9 +163,33 @@ const reviewSubmission = async (
   return updatedSubmission;
 };
 
+const getSubmissionStats = async () => {
+  const statusCounts = await prisma.submission.groupBy({
+    by: ["status"],
+    _count: {
+      _all: true,
+    },
+  });
+
+  const stats = {
+    total: 0,
+    PENDING: 0,
+    APPROVED: 0,
+    REJECTED: 0,
+  };
+
+  for (const item of statusCounts) {
+    stats[item.status] = item._count._all;
+    stats.total += item._count._all;
+  }
+
+  return stats;
+};
+
 export const SubmissionService = {
   projectSubmission,
   mySubmission,
   getAllSubmission,
   reviewSubmission,
+  getSubmissionStats,
 };

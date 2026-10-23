@@ -62,10 +62,21 @@ const reviewSubmission = catchAsync(async (req: Request, res: Response) => {
     data: result,
   });
 });
+const getSubmissionStats = catchAsync(async (req: Request, res: Response) => {
+  const result = await SubmissionService.getSubmissionStats();
+
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "Submission statistics retrieved successfully.",
+    data: result,
+  });
+});
 
 export const SubmissionController = {
   projectSubmission,
   mySubmission,
   getAllSubmission,
   reviewSubmission,
+  getSubmissionStats,
 };

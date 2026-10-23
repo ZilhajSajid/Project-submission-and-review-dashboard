@@ -29,4 +29,10 @@ router.patch(
   SubmissionController.reviewSubmission,
 );
 
+router.get(
+  "/submission-stats",
+  auth(UserRole.ADMIN),
+  SubmissionController.getSubmissionStats,
+);
+
 export const SubmissionRoutes = router;
